@@ -3,14 +3,32 @@ const app = express();
 export default app;
 
 import morgan from "morgan";
+import getUserFromToken from "./middleware/getUserFromToken.js";
 
+import usersRouter from "./api/users.js";
 import tracksRouter from "#api/tracks";
 import playlistsRouter from "#api/playlists";
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan("dev"));
+app.use(express.urlencoded({ extended: true })); 
+app.use(morgan("dev"));    
 
+// In your app.js, add this BEFORE your routes
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  console.log('Authorization header:', req.get('authorization'));
+  console.log('req.user after middleware:', req.user);
+  next();
+});
+
+app.use(getUserFromToken);
+
+app.use((req, res, next) => {
+  console.log('req.user AFTER getUserFromToken:', req.user);
+  next();
+});
+
+app.use("/users", usersRouter);
 app.use("/tracks", tracksRouter);
 app.use("/playlists", playlistsRouter);
 
